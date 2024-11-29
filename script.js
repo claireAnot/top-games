@@ -97,9 +97,23 @@ function editModal(gameId) {
     // modifyModal(gamesList[result].title, modalBody)
     fetch("./form.html").then((data) => {
 		data.text().then((form) => {
+            const selectedGame = gamesList[result]
 			modifyModal(gamesList[result].title, form)
+            modifyForm({
+				title: selectedGame.title,
+				year: selectedGame.year,
+				imageUrl: selectedGame.imageUrl,
+			})
+            document
+				.querySelector('button[type="submit"]')
+				.addEventListener("click", () =>
+					updateGames(title.value, year.value, imageUrl.value, gameId)
+				)
 		})
 	})
+
+    const selectedGame = gamesList[result]
+	console.log(selectedGame)
 }
 
 const viewButtons = document.querySelectorAll(".view")
@@ -113,9 +127,50 @@ function viewModal(gameId) {
 	const result = gamesList.findIndex((game) => game.id === parseInt(gameId))
 	const modalBody = `<img src="${gamesList[result].imageUrl}" alt="${gamesList[result].title}" class="img-fluid" />`
     modifyModal(gamesList[result].title, modalBody)
+    document.querySelector(".modal-footer").innerHTML = `
+		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+			Close
+		</button>
+</form>`
 }
 
 function modifyModal(modalTitle, modalBody) {
 	document.querySelector(".modal-title").textContent = modalTitle
     document.querySelector(".modal-body").innerHTML = modalBody
+    document.querySelector(".modal-footer").innerHTML = `
+		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+			Close
+		</button>
+		<button type="submit" data-bs-dismiss="modal" class="btn btn-primary">Submit</button>
+</form>`
+}
+
+function modifyForm(gameData) {
+	const form = document.querySelector("form")
+	form.title.value = gameData.title
+	form.year.value = gameData.year
+	form.imageUrl.value = gameData.imageUrl
+}
+
+function updateGames(title, year, imageUrl, gameId) {
+	const index = gamesList.findIndex((game) => game.id === parseInt(gameId))
+
+	gamesList[index].title = title
+	gamesList[index].year = year
+	gamesList[index].imageUrl = imageUrl
+	document.querySelector(".row").innerHTML = "" // Nous supprimons toutes les données des jeux dans le DOM.
+	writeDom()
+	editButtons = document.querySelectorAll(".edit")
+	editButtons.forEach((btn) => {
+		btn.addEventListener("click", (e) => {
+			editModal(e.target.getAttribute("data-edit-id"))
+		})
+	})
+	
+	viewButtons = document.querySelectorAll(".view")
+	viewButtons.forEach((btn) => {
+		btn.addEventListener("click", (e) => {
+			viewModal(e.target.getAttribute("data-edit-id"))
+		})
+	})
 }
