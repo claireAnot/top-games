@@ -93,8 +93,13 @@ editButtons.forEach((btn) => {
 
 function editModal(gameId) {
 	const result = gamesList.findIndex((game) => game.id === parseInt(gameId))
-	const modalBody = `<h4>ajoutez un formulaire pour modifier le jeu ici</h4>`
-    modifyModal(gamesList[result].title, modalBody)
+	// const modalBody = `<h4>ajoutez un formulaire pour modifier le jeu ici</h4>`
+    // modifyModal(gamesList[result].title, modalBody)
+    fetch("./form.html").then((data) => {
+		data.text().then((form) => {
+			modifyModal(gamesList[result].title, form)
+		})
+	})
 }
 
 const viewButtons = document.querySelectorAll(".view")
@@ -107,7 +112,7 @@ viewButtons.forEach((btn) => {
 function viewModal(gameId) {
 	const result = gamesList.findIndex((game) => game.id === parseInt(gameId))
 	const modalBody = `<img src="${gamesList[result].imageUrl}" alt="${gamesList[result].title}" class="img-fluid" />`
-    modifyModal(gamesList[result].id, modalBody)
+    modifyModal(gamesList[result].title, modalBody)
 }
 
 function modifyModal(modalTitle, modalBody) {
