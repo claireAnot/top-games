@@ -61,7 +61,7 @@ function writeDom() {
                             class="btn btn-sm btn-outline-secondary view" 
                             data-bs-toggle="modal" 
                             data-bs-target="#exampleModal"
-                            data-edit-id="${game.id}"
+                            data-view-id="${game.id}"
                             >
                                 View
                         </button>
@@ -84,7 +84,7 @@ function writeDom() {
 }
 
 writeDom()
-const editButtons = document.querySelectorAll(".edit")
+var editButtons = document.querySelectorAll(".edit")
 editButtons.forEach((btn) => {
 	btn.addEventListener("click", (e) => {
 		editModal(e.target.getAttribute("data-edit-id"))
@@ -113,13 +113,13 @@ function editModal(gameId) {
 	})
 
     const selectedGame = gamesList[result]
-	console.log(selectedGame)
+	// console.log(selectedGame)
 }
 
-const viewButtons = document.querySelectorAll(".view")
+var viewButtons = document.querySelectorAll(".view")
 viewButtons.forEach((btn) => {
 	btn.addEventListener("click", (e) => {
-		viewModal(e.target.getAttribute("data-edit-id"))
+		viewModal(e.target.getAttribute("data-view-id"))
 	})
 })
 
@@ -141,7 +141,11 @@ function modifyModal(modalTitle, modalBody) {
 		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
 			Close
 		</button>
-		<button type="submit" data-bs-dismiss="modal" class="btn btn-primary">Submit</button>
+		<button type="submit" 
+				data-bs-dismiss="modal" 
+				class="btn btn-primary">
+				Submit
+		</button>
 </form>`
 }
 
@@ -160,6 +164,7 @@ function updateGames(title, year, imageUrl, gameId) {
 	gamesList[index].imageUrl = imageUrl
 	document.querySelector(".row").innerHTML = "" // Nous supprimons toutes les données des jeux dans le DOM.
 	writeDom()
+
 	editButtons = document.querySelectorAll(".edit")
 	editButtons.forEach((btn) => {
 		btn.addEventListener("click", (e) => {
@@ -170,7 +175,7 @@ function updateGames(title, year, imageUrl, gameId) {
 	viewButtons = document.querySelectorAll(".view")
 	viewButtons.forEach((btn) => {
 		btn.addEventListener("click", (e) => {
-			viewModal(e.target.getAttribute("data-edit-id"))
+			viewModal(e.target.getAttribute("data-view-id"))
 		})
 	})
 }
