@@ -105,9 +105,9 @@ function editModal(carId) {
 					document.querySelector(".form-img").src = selectedCar.carImage
 					document
 						.querySelector('button[type="submit"]')
-						.addEventListener("click", () =>
+						.addEventListener("click", () => {
 							updateCars(title.value, year.value, imageUrl.value, carId)
-						)
+					})
 				})
 			})
 		})
@@ -174,16 +174,17 @@ function modifyForm(carData) {
 	form.imageUrl.value = carData.imageUrl
 }
 
+
 function updateCars(carName, carYear, carImage, carId) {
-	console.log(`${carName}, ${carYear}, ${carId}`)
 	const index = carsList.findIndex((car) => car.id === parseInt(carId))
 
 	carsList[index].carName = carName
-	carsList[index].carYear = carYear
+	carsList[index].carYear = parseInt(carYear)
 	carsList[index].carImage = carImage
+	
 	document.querySelector(".row").innerHTML = "" // Nous supprimons toutes les données des jeux dans le DOM.
 	writeDom()
-
+	
 	editButtons = document.querySelectorAll(".edit")
 	editButtons.forEach((btn) => {
 		btn.addEventListener("click", (e) => {
@@ -196,5 +197,22 @@ function updateCars(carName, carYear, carImage, carId) {
 		btn.addEventListener("click", (e) => {
 			viewModal(e.target.getAttribute("data-view-id"))
 		})
+	})
+
+	const formdata = {
+		carName,
+		carYear,
+		carImage,
+		carId,
+	}
+
+	fetch(`http://localhost:3000/api/cars/${carId}`, {
+		method: "PUT",
+		headers: {
+			"x-api-key": "secret_phrase_here",
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		},
+		body: JSON.stringify(formdata),
 	})
 }
