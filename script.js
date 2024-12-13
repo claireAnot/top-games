@@ -1,59 +1,52 @@
-const gamesList = [
-	{
-		title: "Stardew Valley",
-		year: 2016,
-		imageUrl:
-			"https://www.radiofrance.fr/s3/cruiser-production/2017/10/9d890b40-340b-4fa3-98c6-89983dcffd9c/870x489_meastardew.webp",
-		id: 1,
+// initialize variable
+let carsList
+
+fetch("http://localhost:3000/api/cars", {
+	method: "GET",
+	headers: {
+		"x-api-key": "secret_phrase_here",
+		"Content-Type": "application/json",
+		Accept: "application/json",
 	},
-	{
-		title: "Minecraft",
-		year: 2009,
-		imageUrl:
-			"https://m.media-amazon.com/images/I/61smNbXSW1L._AC_UF1000,1000_QL80_.jpg",
-		id: 2,
-	},
-	{
-		title: "Portal",
-		year: 2007,
-		imageUrl:
-			"https://trustmyscience.com/wp-content/uploads/2017/02/maxresdefault-768x427.jpg",
-		id: 3,
-	},
-	{
-		title: "Street Fighter V",
-		year: 2015,
-		imageUrl:
-			"https://gaming-cdn.com/images/products/671/orig/street-fighter-v-pc-jeu-steam-cover.jpg?v=1662539255",
-		id: 4,
-	},
-	{
-		title: "Half Life 2",
-		year: 2004,
-		imageUrl:
-			"https://gaming-cdn.com/images/products/2284/orig/half-life-2-pc-mac-game-steam-cover.jpg?v=1650555068",
-		id: 5,
-	},
-	{
-		title: "Skyrim",
-		year: 2011,
-		imageUrl:
-			"https://gaming-cdn.com/images/products/146/orig/the-elder-scrolls-v-skyrim-pc-jeu-steam-europe-cover.jpg?v=1661270991",
-		id: 6,
-	},
-]
+})
+	.then((res) => {
+		if (!res.ok) {
+			console.log("your API isn't working !!!")
+		}
+		res.json().then((data) => {
+			carsList = data // Mise à jour de la liste des voitures avec les données récupérées
+			writeDom()  // APRÈS que les données aient été récupérées 
+			
+			var editButtons = document.querySelectorAll(".edit")
+			editButtons.forEach((btn) => {
+				btn.addEventListener("click", (e) => {
+					editModal(e.target.getAttribute("data-edit-id"))
+				})
+			})
+
+			var viewButtons = document.querySelectorAll(".view")
+			viewButtons.forEach((btn) => {
+				btn.addEventListener("click", (e) => {
+					viewModal(e.target.getAttribute("data-view-id"))
+				})
+			})
+		})
+	})
+	.catch((error) =>
+		console.error("Erreur lors de la récupération des voitures :", error)
+	)
 
 
 function writeDom() {
-    gamesList.forEach((game) => {
+    carsList.forEach((car) => {
         const articleContainer = document.querySelector(".row")
 		articleContainer.innerHTML += `
         <article class="col">
         <div class="card shadow-sm">
-            <img src="${game.imageUrl}" alt="${game.title}" class="card-img-top" />
+            <img src="${car.carImage}" alt="${car.carName}" class="card-img-top" />
             <div class="card-body">
-            <h3 class="card-title">${game.title}</h3>
-                <p class="card-text">${game.year}</p>
+            <h3 class="card-title">${car.carName}</h3>
+                <p class="card-text">${car.carYear}</p>
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="btn-group">
                         <button 
@@ -61,7 +54,7 @@ function writeDom() {
                             class="btn btn-sm btn-outline-secondary view" 
                             data-bs-toggle="modal" 
                             data-bs-target="#exampleModal"
-                            data-view-id="${game.id}"
+                            data-view-id="${car.id}"
                             >
                                 View
                         </button>
@@ -70,7 +63,7 @@ function writeDom() {
                             class="btn btn-sm btn-outline-secondary edit" 
                             data-bs-toggle="modal" 
                             data-bs-target="#exampleModal"
-                            data-edit-id="${game.id}"
+                            data-edit-id="${car.id}"
                             >
                                 Edit
                         </button>
@@ -83,55 +76,79 @@ function writeDom() {
     })
 }
 
-writeDom()
-var editButtons = document.querySelectorAll(".edit")
-editButtons.forEach((btn) => {
-	btn.addEventListener("click", (e) => {
-		editModal(e.target.getAttribute("data-edit-id"))
-	})
-})
 
-function editModal(gameId) {
-	const result = gamesList.findIndex((game) => game.id === parseInt(gameId))
-	// const modalBody = `<h4>ajoutez un formulaire pour modifier le jeu ici</h4>`
-    // modifyModal(gamesList[result].title, modalBody)
-    fetch("./form.html").then((data) => {
-		data.text().then((form) => {
-            const selectedGame = gamesList[result]
-			modifyModal(gamesList[result].title, form)
-            modifyForm({
-				title: selectedGame.title,
-				year: selectedGame.year,
-				imageUrl: selectedGame.imageUrl,
+function editModal(carId) {
+	fetch(`http://localhost:3000/api/cars/${carId}`, {
+		method: "GET",
+		headers: {
+			"x-api-key": "secret_phrase_here",
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		},
+	}).then((res) => {
+		if (!res.ok) {
+			throw new Error("Error with the car with this id")
+		}
+		res.json().then((data) => {
+			const selectedCar = data
+
+			// Injectez le formulaire dans le corps du modal
+			fetch("./form.html").then((data) => {
+				data.text().then((form) => {
+					// Modifiez le titre et le corps du modal
+					modifyModal("Mode Edition", form)
+					modifyForm({
+						title: selectedCar.carName,
+						year: selectedCar.carYear,
+						imageUrl: selectedCar.carImage,
+					})
+					document.querySelector(".form-img").src = selectedCar.carImage
+					document
+						.querySelector('button[type="submit"]')
+						.addEventListener("click", () =>
+							updateCars(title.value, year.value, imageUrl.value, carId)
+						)
+				})
 			})
-            document
-				.querySelector('button[type="submit"]')
-				.addEventListener("click", () =>
-					updateGames(title.value, year.value, imageUrl.value, gameId)
-				)
 		})
 	})
-
-    const selectedGame = gamesList[result]
-	// console.log(selectedGame)
+	.catch((error) =>
+		console.error("Erreur lors de la récupération des voitures :", error)
+	)
 }
 
-var viewButtons = document.querySelectorAll(".view")
-viewButtons.forEach((btn) => {
-	btn.addEventListener("click", (e) => {
-		viewModal(e.target.getAttribute("data-view-id"))
-	})
-})
 
-function viewModal(gameId) {
-	const result = gamesList.findIndex((game) => game.id === parseInt(gameId))
-	const modalBody = `<img src="${gamesList[result].imageUrl}" alt="${gamesList[result].title}" class="img-fluid" />`
-    modifyModal(gamesList[result].title, modalBody)
-    document.querySelector(".modal-footer").innerHTML = `
+function viewModal(carId) {
+	// Trouvez la voiture en fonction de son identifiant
+	fetch(`http://localhost:3000/api/cars/${carId}`, {
+		method: "GET",
+		headers: {
+			"x-api-key": "secret_phrase_here",
+			"Content-Type": "application/json",
+			Accept: "application/json",
+		},
+	})
+		.then((res) => {
+			if (!res.ok) {
+				throw new Error("Error with the car with this id")
+			}
+			res.json().then((data) => {
+				const selectedCar = data
+				// passer une image comme corps du modal
+				const modalBody = `<img src="${selectedCar.carImage}" alt="${selectedCar.carName}" class="img-fluid" />`
+				modifyModal(selectedCar.carName, modalBody)
+
+				// Écrire dans le footer
+				document.querySelector(".modal-footer").innerHTML = `
 		<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
 			Close
 		</button>
 </form>`
+			})
+		})
+		.catch((error) =>
+			console.error("Erreur lors de la récupération des voitures :", error)
+		)
 }
 
 function modifyModal(modalTitle, modalBody) {
@@ -149,19 +166,21 @@ function modifyModal(modalTitle, modalBody) {
 </form>`
 }
 
-function modifyForm(gameData) {
+function modifyForm(carData) {
 	const form = document.querySelector("form")
-	form.title.value = gameData.title
-	form.year.value = gameData.year
-	form.imageUrl.value = gameData.imageUrl
+
+	form.title.value = carData.title
+	form.year.value = carData.year
+	form.imageUrl.value = carData.imageUrl
 }
 
-function updateGames(title, year, imageUrl, gameId) {
-	const index = gamesList.findIndex((game) => game.id === parseInt(gameId))
+function updateCars(carName, carYear, carImage, carId) {
+	console.log(`${carName}, ${carYear}, ${carId}`)
+	const index = carsList.findIndex((car) => car.id === parseInt(carId))
 
-	gamesList[index].title = title
-	gamesList[index].year = year
-	gamesList[index].imageUrl = imageUrl
+	carsList[index].carName = carName
+	carsList[index].carYear = carYear
+	carsList[index].carImage = carImage
 	document.querySelector(".row").innerHTML = "" // Nous supprimons toutes les données des jeux dans le DOM.
 	writeDom()
 
